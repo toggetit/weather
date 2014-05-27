@@ -17,7 +17,7 @@ void* readS(void* sock);
 
 mysqlpp::Connection con( false );
 
-bool mysqlInsert(int temp, int hum, int pres)
+bool mysqlInsert(float temp, int hum, float pres)
 {
   cout<<"Entered mysql function"<<endl;
   if (con.connect( "weather_measurements", "localhost", "muxa", "852456" ))
@@ -166,6 +166,7 @@ void* readS(void* sock)
       cout<<"Temperature is "<<temp<<endl;
       cout<<"Pressure is "<<pres<<endl;
       cout<<"Humidity is "<<humi<<endl;
+      mysqlInsert(temp,pres,humi);
 
     }
 
