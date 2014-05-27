@@ -1,0 +1,8 @@
+#Object files
+*.o
+
+#emacs temp files
+*~
+
+#build binary files
+build/*
