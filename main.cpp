@@ -17,7 +17,7 @@ void* readS(void* sock);
 
 mysqlpp::Connection con( false );
 
-bool mysqlInsert(int temp, int hum, int pres)
+bool mysqlInsert(float temp, int hum, float pres)
 {
   cout<<"Entered mysql function"<<endl;
   if (con.connect( "weather_measurements", "localhost", "muxa", "852456" ))
@@ -109,16 +109,16 @@ void* readS(void* sock)
     {
       
       cout<<"received "<<answer<<" bytes"<<endl;
-      printf("received: %s", buf);
+      printf("received: %s\n", buf);
 
       //*** NOT NECESSARY - REMOVE
 
       //Remove EOL symbol
-      buf[sizeof(buf)-1] = 0;
+      //buf[sizeof(buf)-1] = 0;
 
       string s(buf);
       //Remove \n
-      s.pop_back();
+      //s.pop_back();
 
       //***
 
@@ -159,14 +159,17 @@ void* readS(void* sock)
       //buf[0] = '\0';
       
       cout<<"String is "<<s<<endl;
-
+      /*
+      cout<<s.substr(2, 5);
+      cout<<s.substr(15, 5);
+      */
       temp = stof(s.substr(2, 5));
-      pres = stoi(s.substr(9, 3));
-      humi = stof(s.substr(14, 5));
+      pres = stoi(s.substr(10, 3));
+      humi = stof(s.substr(16, 5));
       cout<<"Temperature is "<<temp<<endl;
       cout<<"Pressure is "<<pres<<endl;
       cout<<"Humidity is "<<humi<<endl;
-
+      mysqlInsert(temp,pres,humi);
     }
 
   
