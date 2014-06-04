@@ -122,8 +122,8 @@ void* readS(void* sock)
 
       //***
 
-      string s(buf);
-
+      //string s(buf);
+      s.assign(buf, sizeof(buf));
       //Clearing bur fot next receives
       memset(&buf[0], 0, sizeof(buf));
       
@@ -140,8 +140,9 @@ void* readS(void* sock)
       cout<<"Temperature is "<<temp<<endl;
       cout<<"Pressure is "<<pres<<endl;
       cout<<"Humidity is "<<humi<<endl;
-      mysqlInsert(temp,pres,humi);
-
+      //mysqlInsert(temp,pres,humi);
+      mysqlInsert(stof(s.substr(2, 5)), stoi(s.substr(10, 3)), stof(s.substr(16, 5)));
+      s.clear();
     }
 
   
