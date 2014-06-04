@@ -10,6 +10,7 @@
 #include <cstdio>
 #include <list>
 #include <mysql++/mysql++.h>
+#include <syslog.h>
 
 using namespace std;
 
@@ -43,14 +44,17 @@ int main(int argc, char** argv)
 {
   //mysqlInsert(1,1,1);
   //cout<<sizeof(int);
+  openlog("weather", LOG_PID, LOG_USER);
 
   int sock = socket(AF_INET, SOCK_STREAM, 0);
   if (sock < 0)
   {
-    cout<<"Error creating socket: "<<errno<<endl;
+    syslog(LOG_ERR, "Error creating socket");
+    //cout<<"Error creating socket: "<<errno<<endl;
     return(EXIT_FAILURE);
   }
-  cout<<"Socket created: "<<sock<<endl;
+  syslog(LOG_DEBUG, "Socket created");
+  //cout<<"Socket created: "<<sock<<endl;
 
   struct sockaddr_in address;
   address.sin_family = AF_INET;
@@ -59,13 +63,15 @@ int main(int argc, char** argv)
 
   if (bind(sock, (struct sockaddr*)&address, sizeof(address)) < 0)
     {
-      cout<<"Error binding socket: "<<errno<<endl;
+      syslog(LOG_ERR, "Error binding socket");
+      //cout<<"Error binding socket: "<<errno<<endl;
       return(EXIT_FAILURE);
     }
 
   if (listen(sock, 1) < 0)
     {
-      cout<<"Can't listen socket: "<<errno<<endl;
+      syslog(LOG_ERR, "Error listen socket: ");
+      //cout<<"Can't listen socket: "<<errno<<endl;
       return(EXIT_FAILURE);
     }
 
@@ -77,7 +83,8 @@ int main(int argc, char** argv)
     
       if (client < 0)
 	{
-	  cout<<"Cannot accept client: "<<errno;
+	  syslog(LOG_ERR, "Cannot accept client");
+	  //cout<<"Cannot accept client: "<<errno;
 	  return(EXIT_FAILURE);
 	}
       
@@ -88,7 +95,9 @@ int main(int argc, char** argv)
  
 
   close(sock);
-  cout<<"Socket closed"<<endl;
+  syslog(LOG_INFO, "Socket closed");
+  //cout<<"Socket closed"<<endl;
+  closelog();
   return(EXIT_SUCCESS);
 }
 
