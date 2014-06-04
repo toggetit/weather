@@ -109,60 +109,34 @@ void* readS(void* sock)
     {
       
       cout<<"received "<<answer<<" bytes"<<endl;
-      printf("received: %s", buf);
+      printf("received: %s\n", buf);
 
       //*** NOT NECESSARY - REMOVE
 
       //Remove EOL symbol
-      buf[sizeof(buf)-1] = 0;
+      //buf[sizeof(buf)-1] = 0;
 
-      string s(buf);
+
       //Remove \n
-      s.pop_back();
+      //s.pop_back();
 
       //***
+
+      string s(buf);
 
       //Clearing bur fot next receives
       memset(&buf[0], 0, sizeof(buf));
       
-      
-      //istringstream iss(s);
-      //string temp;
-
-      //vector<string> v;
-      //while (iss >> temp) v.push_back(temp);
-      //vector<string> v = split(s, ' ');
-
-      //for (const string &item: v)
-      //{
-      //  cout<<item<<endl;
-      //}
-      /*
-      while (!iss.eof())
-      	{
-      	  string sub;
-      	  //stringstream ss;
-
-      	  iss >> sub;
-      	  //int temp;
-      	  //ss << sub;
-      	  //ss >> temp;
-      	  cout << "Substring: " << sub << endl;
-      	}
-      */
-      
-      //string s(buf);
-      //cout<<s;
-      //mysqlInsert((int)(buf[0]-'0'),(int)(buf[1]-'0'),(int)(buf[2]-'0'));
-    //printf("received: ", s);
-    //cout<<s;
-      //buf[0] = '\0';
+            
       
       cout<<"String is "<<s<<endl;
-
+      /*
+      cout<<s.substr(2, 5);
+      cout<<s.substr(15, 5);
+      */
       temp = stof(s.substr(2, 5));
-      pres = stoi(s.substr(9, 3));
-      humi = stof(s.substr(14, 5));
+      pres = stoi(s.substr(10, 3));
+      humi = stof(s.substr(16, 5));
       cout<<"Temperature is "<<temp<<endl;
       cout<<"Pressure is "<<pres<<endl;
       cout<<"Humidity is "<<humi<<endl;
