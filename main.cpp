@@ -20,19 +20,23 @@ mysqlpp::Connection con( false );
 
 bool mysqlInsert(float temp, int hum, float pres)
 {
-  cout<<"Entered mysql function"<<endl;
+  //cout<<"Entered mysql function"<<endl;
+  syslog(LOG_DEBUG, "Entering mysql inserting subroutine");
   if (con.connect( "weather_measurements", "localhost", "muxa", "852456" ))
     {
       // выполнение запроса и вывод полученных результатов
       mysqlpp::Query query = con.query();
       query<<"insert into measurements values("<<temp<<","<<hum<<","<<pres<<",now())";
-      cout<<query<<endl;
-      cout<<query.execute().info();
+      syslog(LOG_DEBUG, "Executing SQL query: %s", query.str().c_str());
+      //cout<<query<<endl;
+      //cout<<query.execute().info();
+      syslog(LOG_DEBUG, "Base answer: %s", query.error());
       con.disconnect();
     }
   else
     {
-      cerr << "Error connect" << endl;
+      syslog(LOG_ERR, "Couldn't connect to database: %s, exiting subroutine", con.error());
+      //cerr << "Error connect" << endl;
       return 1;
     }
   
@@ -42,19 +46,22 @@ bool mysqlInsert(float temp, int hum, float pres)
 
 int main(int argc, char** argv)
 {
-  //mysqlInsert(1,1,1);
-  //cout<<sizeof(int);
+
+  //buffer for log (error string)
+  char err[256];
+
   openlog("weather", LOG_PID, LOG_USER);
+  syslog(LOG_INFO, "*** Started program ***");
 
   int sock = socket(AF_INET, SOCK_STREAM, 0);
   if (sock < 0)
   {
-    syslog(LOG_ERR, "Error creating socket");
-    //cout<<"Error creating socket: "<<errno<<endl;
+    
+    syslog(LOG_ERR, "Error creating socket: %s", strerror_r(errno, err, 256));
+    //cout<<"Error creating socket: "<<strerror(errno)<<endl;
     return(EXIT_FAILURE);
   }
-  syslog(LOG_DEBUG, "Socket created");
-  //cout<<"Socket created: "<<sock<<endl;
+  syslog(LOG_INFO, "Socket created: %d", sock);
 
   struct sockaddr_in address;
   address.sin_family = AF_INET;
@@ -63,14 +70,14 @@ int main(int argc, char** argv)
 
   if (bind(sock, (struct sockaddr*)&address, sizeof(address)) < 0)
     {
-      syslog(LOG_ERR, "Error binding socket");
-      //cout<<"Error binding socket: "<<errno<<endl;
+      syslog(LOG_ERR, "Error binding socket: %s", strerror_r(errno, err, 256));
+      //cout<<"Error binding socket: "<<strerror(errno)<<endl;
       return(EXIT_FAILURE);
     }
 
   if (listen(sock, 1) < 0)
     {
-      syslog(LOG_ERR, "Error listen socket: ");
+      syslog(LOG_ERR, "Error listen socket: %s", strerror_r(errno, err, 256));
       //cout<<"Can't listen socket: "<<errno<<endl;
       return(EXIT_FAILURE);
     }
@@ -83,7 +90,7 @@ int main(int argc, char** argv)
     
       if (client < 0)
 	{
-	  syslog(LOG_ERR, "Cannot accept client");
+	  syslog(LOG_ERR, "Cannot accept client: %s", strerror_r(errno, err, 256));
 	  //cout<<"Cannot accept client: "<<errno;
 	  return(EXIT_FAILURE);
 	}
@@ -101,54 +108,46 @@ int main(int argc, char** argv)
   return(EXIT_SUCCESS);
 }
 
-char buf[128];
-string s;
-float temp = 0;
-int pres = 0;
-float humi = 0;
+
+
 
 void* readS(void* sock)
 {
-
+  char buf[128];
+  char err[256];
+  string s;
+  float temp = 0;
+  int pres = 0;
+  float humi = 0;
     
-  cout<<"accepted socket "<<*(int*)sock<<endl;
+  syslog(LOG_INFO, "Accepted socket: %d", *(int*)sock);
+  //cout<<"accepted socket "<<*(int*)sock<<endl;
 
   int answer;
   while ((answer = recv(*(int*)sock, buf, sizeof(buf), 0)) > 0) 
     {
-      
-      cout<<"received "<<answer<<" bytes"<<endl;
-      printf("received: %s\n", buf);
+      syslog(LOG_DEBUG, "Received %d bytes: %s", answer, buf);
+      //cout<<"received "<<answer<<" bytes"<<endl;
+      //printf("received: %s\n", buf);
+      //syslog(LOG_DEBUG, "Recieved: %s", buf);
 
-      //*** NOT NECESSARY - REMOVE
-
-      //Remove EOL symbol
-      //buf[sizeof(buf)-1] = 0;
-
-
-      //Remove \n
-      //s.pop_back();
-
-      //***
-
-      //string s(buf);
       s.assign(buf, sizeof(buf));
       //Clearing bur fot next receives
       memset(&buf[0], 0, sizeof(buf));
       
             
-      
-      cout<<"String is "<<s<<endl;
-      /*
-      cout<<s.substr(2, 5);
-      cout<<s.substr(15, 5);
-      */
+      syslog(LOG_DEBUG, "Converted to string: %s", s.c_str());
+      //cout<<"String is "<<s<<endl;
+
       temp = stof(s.substr(2, 5));
       pres = stoi(s.substr(10, 3));
       humi = stof(s.substr(16, 5));
-      cout<<"Temperature is "<<temp<<endl;
-      cout<<"Pressure is "<<pres<<endl;
-      cout<<"Humidity is "<<humi<<endl;
+      //cout<<"Temperature is "<<temp<<endl;
+      //cout<<"Pressure is "<<pres<<endl;
+      //cout<<"Humidity is "<<humi<<endl;
+      syslog(LOG_DEBUG, "Extracted TEMPERATURE: %.2f", temp);
+      syslog(LOG_DEBUG, "Extracted PRESSURE: %d", pres);
+      syslog(LOG_DEBUG, "Extracted HUMIDITY: %.2f", humi);
       //mysqlInsert(temp,pres,humi);
       mysqlInsert(stof(s.substr(2, 5)), stoi(s.substr(10, 3)), stof(s.substr(16, 5)));
       s.clear();
@@ -156,8 +155,11 @@ void* readS(void* sock)
 
   
     
-  cout<<"exit thread"<<endl;
+  
+  //cout<<"exit thread"<<endl;
   close(*(int*)sock);
+  syslog(LOG_INFO, "Closed socket %d, exiting thread", *(int*)sock);
+
   pthread_exit(NULL);
 
 }
