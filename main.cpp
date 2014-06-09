@@ -18,7 +18,7 @@ void* readS(void* sock);
 
 mysqlpp::Connection con( false );
 
-bool mysqlInsert(float temp, int hum, float pres)
+bool mysqlInsert(float temp, float hum, int pres)
 {
   //cout<<"Entered mysql function"<<endl;
   syslog(LOG_DEBUG, "Entering mysql inserting subroutine");
@@ -30,6 +30,7 @@ bool mysqlInsert(float temp, int hum, float pres)
       syslog(LOG_DEBUG, "Executing SQL query: %s", query.str().c_str());
       //cout<<query<<endl;
       //cout<<query.execute().info();
+      query.execute();
       syslog(LOG_DEBUG, "Base answer: %s", query.error());
       con.disconnect();
     }
@@ -146,10 +147,11 @@ void* readS(void* sock)
       //cout<<"Pressure is "<<pres<<endl;
       //cout<<"Humidity is "<<humi<<endl;
       syslog(LOG_DEBUG, "Extracted TEMPERATURE: %.2f", temp);
-      syslog(LOG_DEBUG, "Extracted PRESSURE: %d", pres);
       syslog(LOG_DEBUG, "Extracted HUMIDITY: %.2f", humi);
+      syslog(LOG_DEBUG, "Extracted PRESSURE: %d", pres);
+      
       //mysqlInsert(temp,pres,humi);
-      mysqlInsert(stof(s.substr(2, 5)), stoi(s.substr(10, 3)), stof(s.substr(16, 5)));
+      mysqlInsert(stof(s.substr(2, 5)), stof(s.substr(16, 5)), stoi(s.substr(10, 3)));
       s.clear();
     }
 
