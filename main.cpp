@@ -62,7 +62,7 @@ int main(int argc, char** argv)
     //cout<<"Error creating socket: "<<strerror(errno)<<endl;
     return(EXIT_FAILURE);
   }
-  syslog(LOG_INFO, "Socket created: %d", sock);
+  syslog(LOG_INFO, "Server socket created: %d", sock);
 
   struct sockaddr_in address;
   address.sin_family = AF_INET;
@@ -103,7 +103,7 @@ int main(int argc, char** argv)
  
 
   close(sock);
-  syslog(LOG_INFO, "Socket closed");
+  syslog(LOG_INFO, "Server socket closed, exiting program");
   //cout<<"Socket closed"<<endl;
   closelog();
   return(EXIT_SUCCESS);
@@ -140,9 +140,9 @@ void* readS(void* sock)
       syslog(LOG_DEBUG, "Converted to string: %s", s.c_str());
       //cout<<"String is "<<s<<endl;
 
-      temp = stof(s.substr(2, 5));
-      pres = stoi(s.substr(10, 3));
-      humi = stof(s.substr(16, 5));
+      temp = stof(s.substr(2, 6));
+      pres = stoi(s.substr(11, 3));
+      humi = stof(s.substr(17, 5));
       //cout<<"Temperature is "<<temp<<endl;
       //cout<<"Pressure is "<<pres<<endl;
       //cout<<"Humidity is "<<humi<<endl;
@@ -151,7 +151,7 @@ void* readS(void* sock)
       syslog(LOG_DEBUG, "Extracted PRESSURE: %d", pres);
       
       //mysqlInsert(temp,pres,humi);
-      mysqlInsert(stof(s.substr(2, 5)), stof(s.substr(16, 5)), stoi(s.substr(10, 3)));
+      mysqlInsert(stof(s.substr(2, 6)), stof(s.substr(17, 5)), stoi(s.substr(11, 3)));
       s.clear();
     }
 
